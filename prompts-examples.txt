@@ -1,0 +1,19 @@
+Ask 2 multi-choice questions to the following text and mark the correct answer with "*"
+
+prompt engineering is a emerging discipline within the world of generative Ai and it describes the art of writing good intentional prompts that produce an output from a generative AI model that we actually want and to a degree it is an R it's it's very hard to explain how to create a good product but to a larger extent there's a very logical process and way that we can go into creating problems that can be described and easily applied to produce better output from large language models and of course the generative art tools as well good prompts are the key to producing good outputs for these models using different types of prompts we can modify the mode or type of task that has been formed and we can even use prompts to train models to some degree and the performance of doing that is actually surprisingly good now there's a few things to learn with prompt engineering and I think one of the best ways to maybe think about this discipline is to think of it as a more abstract version of programming so throughout the last decades we've seen programming languages become more and more abstract prompts for AI models is almost like the next step it's a super abstract programming of an AI model and that's exactly how I want to approach this here I want to discuss prompts and building good prompts of AI model.
+
+Q1. What is prompt engineering?
+A. The art of writing good intentional prompts that produce an output from a generative AI model 
+B. A more abstract version of programming 
+C. A super abstract programming of an AI model 
+D. A way to modify the mode or type of task that has been formed
+
+Answer: A. The art of writing good intentional prompts that produce an output from a generative AI model *
+
+Q2. What is the best way to think about prompt engineering?
+A. As a way to modify the mode or type of task that has been formed 
+B. As a more abstract version of programming *
+C. As a super abstract programming of an AI model 
+D. As the next step in programming languages
+
+Answer: B. As a more abstract version of programming *
