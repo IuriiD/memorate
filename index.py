@@ -143,8 +143,12 @@ def openai_get_questions(input_text, questions_number=3, response_options_number
     
     {input_text}
     '''
+    prompt_v3 = f'''Ask {questions_number} multi-choice questions to the following text. Each question should have {response_options_number} answer options. Mark the correct answer with "{CORRECT_MARK}"
+    
+    {input_text}
+    '''
     # return "\n1. ChatGPT is an artificial intelligence chatbot developed by AI startup OpenAI and capable of working in dialog mode, which supports requests in different languages\n2. Ukrainian Deputy Prime Minister - Minister of Digital Transformation Mykhailo Fedorov announced this on Telegram, Ukrinform reports. \"ChatGPT is now available in Ukraine. The team of the Ministry of Digital Transformation worked for a long time on this decision - official letters, calls and a meeting with the management.\n3. The program will not work only in the territories temporarily occupied by Russia."
-    return get_openai_completion(prompt_v2)
+    return get_openai_completion(prompt_v3)
 
 # removes the leading "Q1: " for questions,
 # or "A. " for response options,
