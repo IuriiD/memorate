@@ -17,3 +17,19 @@ C. As a super abstract programming of an AI model
 D. As the next step in programming languages
 
 Answer: B. As a more abstract version of programming *
+
+====
+
+Prompt to find the proofs:
+###
+
+In the following text find the sentences which correspond to the following phrases: 
+1. An artificial intelligence chatbot developed by AI startup OpenAI
+2. Mykhailo Fedorov
+3. To work in dialog mode
+
+Ukraine has been removed from the list of countries where the artificial intelligence chatbot ChatGPT is blocked. Ukrainian Deputy Prime Minister - Minister of Digital Transformation Mykhailo Fedorov announced this on Telegram, Ukrinform reports. "ChatGPT is now available in Ukraine. The team of the Ministry of Digital Transformation worked for a long time on this decision - official letters, calls and a meeting with the management. Finally, we managed to correct the injustice. Ukraine was removed from the list of countries where ChatGPT is blocked," he wrote. The program will not work only in the territories temporarily occupied by Russia. ChatGPT is an artificial intelligence chatbot developed by AI startup OpenAI and capable of working in dialog mode, which supports requests in different languages. 
+
+1. ChatGPT is an artificial intelligence chatbot developed by AI startup OpenAI and capable of working in dialog mode, which supports requests in different languages.
+2. Ukrainian Deputy Prime Minister - Minister of Digital Transformation Mykhailo Fedorov announced this on Telegram, Ukrinform reports.
+3. ChatGPT is capable of working in dialog mode, which supports requests in different languages.
