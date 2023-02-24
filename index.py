@@ -5,7 +5,7 @@ import time
 import json
 import random
 
-import mysecrets
+import keys
 
 ### State example
 # TODO: 
@@ -102,8 +102,8 @@ example_state = {
   "questions_rendered": True
 }
 
-openai.organization = mysecrets.OPENAI_ORG
-openai.api_key = mysecrets.OPENAI_KEY
+openai.organization = keys.OPENAI_ORG
+openai.api_key = keys.OPENAI_KEY
 
 ### Constants
 PROJECT_NAME = 'Memorate' # alt.: Memembered etc
@@ -252,7 +252,7 @@ def add_proofs(proofs, questions):
 def get_questions(user_input):
     print('\n\n>>LOADING DATA')
     # temp load a ready json
-    # with open('data.json') as f:
+    # with open('misc/data.json') as f:
     #     data = json.load(f)
     # return data
     openai_questions = openai_get_questions(user_input)

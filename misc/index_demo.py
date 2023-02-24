@@ -7,7 +7,7 @@ import time
 import json
 import random
 
-import mysecrets
+import keys
 
 ### State example
 # TODO: A. Move options selection/enablement state into questions key. B. Remove nested questions.questions
@@ -100,8 +100,8 @@ import mysecrets
 #   "questions_rendered": true
 # }
 
-openai.organization = mysecrets.OPENAI_ORG
-openai.api_key = mysecrets.OPENAI_KEY
+openai.organization = keys.OPENAI_ORG
+openai.api_key = keys.OPENAI_KEY
 
 ### Constants
 PROJECT_NAME = 'Memorate' # temp
