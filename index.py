@@ -4,6 +4,8 @@ from annotated_text import annotated_text
 import time
 import json
 import random
+from youtube_transcript_api import YouTubeTranscriptApi
+import random
 
 import keys
 
@@ -133,7 +135,11 @@ def openai_get_proofs(answer_options, input_text):
         options_prompt.append(f'{idx}. {option}\n')
     prompt = f"""In the following text find the sentences which correspond to the following phrases:\n{''.join(options_prompt)}\n{input_text.rstrip('.')}
     """
+    # OpenAI response for the text input
     # return "\n\nQ1. What is ChatGPT?\nA. An artificial intelligence chatbot ^\nB. A program developed by AI startup OpenAI\nC. A chatbot capable of working in dialog mode\n\nQ2. What did the team of the Ministry of Digital Transformation do to make ChatGPT available in Ukraine?\nA. Sent official letters ^\nB. Held a meeting with the management\nC. Called the management\n\nQ3. Where will ChatGPT not work?\nA. In Ukraine\nB. In the territories temporarily occupied by Russia ^\nC. In different languages"
+    
+    # OpenAI response for Youtube video captions
+    # return "\n1. \"We're also going to be able to use something called a generator model to generate a human natural language answer to our question based on these documents that we've retrieved from an external source.\"\n2. \"Abstractive\"\n3. \"We're going to take all of this and we're going to encode it using what's called a retriever model.\""
     return get_openai_completion(prompt)
 
 @st.cache_data
@@ -143,11 +149,15 @@ def openai_get_questions(input_text, questions_number=3, response_options_number
     
     {input_text}
     '''
-    prompt_v3 = f'''Ask {questions_number} multi-choice questions to the following text. Each question should have {response_options_number} answer options. Mark the correct answer with "{CORRECT_MARK}"
+    prompt_v3 = f'''Ask {questions_number} multi-choice questions to the following text. Each question should have {response_options_number} answer options. Mark the correct answer with "{CORRECT_MARK}" at the end:
     
     {input_text}
     '''
+    # OpenAI response for the text input
     # return "\n1. ChatGPT is an artificial intelligence chatbot developed by AI startup OpenAI and capable of working in dialog mode, which supports requests in different languages\n2. Ukrainian Deputy Prime Minister - Minister of Digital Transformation Mykhailo Fedorov announced this on Telegram, Ukrinform reports. \"ChatGPT is now available in Ukraine. The team of the Ministry of Digital Transformation worked for a long time on this decision - official letters, calls and a meeting with the management.\n3. The program will not work only in the territories temporarily occupied by Russia."
+    
+    # OpenAI response for Youtube video captions
+    # return "\nQ1. What are we going to be able to do with the components we are using?\nA. Generate a human natural language answer to our question^\nB. Retrieve documents from an external source\nC. Create a GPT model to answer questions\n\nQ2. What type of question and answering are we discussing?\nA. Abstractive^\nB. Generative\nC. Natural language\n\nQ3. What type of model are we using to encode our documents?\nA. GPT model\nB. Retriever model^\nC. Vector model"
     return get_openai_completion(prompt_v3)
 
 # removes the leading "Q1: " for questions,
@@ -202,7 +212,7 @@ def openai_res_to_questions(openai_resp_questions):
 # May consider also using non-OpenAI approaches like
 # https://stackoverflow.com/questions/17740833/checking-fuzzy-approximate-substring-existing-in-a-longer-string-in-python
 def openai_res_to_references(openai_resp_proofs, input_text):
-    OVERLAP_CHARS = 50 # how many caracters before and after the segment should be taken
+    OVERLAP_CHARS = 50 # how many characters before and after the segment should be taken
     paragraphs = openai_resp_proofs.replace('\n\n', '').strip('\n').split('\n')
     proofs = []
     for paragraph in paragraphs:
@@ -228,6 +238,7 @@ def openai_res_to_references(openai_resp_proofs, input_text):
             trailing_overlap_start_idx = substr_idx_start + len(highlighted_substr)
             trailing_overlap = input_text[trailing_overlap_start_idx:trailing_overlap_start_idx+OVERLAP_CHARS]
             proofs.append(f'{leading_overlap}{SEPARATOR}{highlighted_substr}{SEPARATOR}{trailing_overlap}')
+    print('[openai_res_to_references]:\n', proofs)
     return proofs
 
 # Gets the list of objects with questions and answer options,
@@ -238,6 +249,7 @@ def extract_correct_answers(questions):
         correct_option_idx = question['correct_option_index'] # starts from 0
         correct_option = question['options'][correct_option_idx]
         res.append(correct_option)
+    print('[extract_correct_answers]:\n', res)
     return res
 
 # adds the proofs to each question as question[n]['correct_option_index']
@@ -346,6 +358,7 @@ def renderQuestions():
             q_key = f'q{q_idx_str}'
             options[idx_str] = st.checkbox(
                 option, 
+                key=f'{option}_{random.randint(0,1000)}', # we need unique checkboxes
                 value = st.session_state.options_state[q_key][idx_str]['selected'], 
                 on_change = mark_selected_disable_all_options, args=(q_idx, st.session_state['options_state'][q_key], idx_str,),
                 disabled = st.session_state.options_state[q_key][idx_str]['disabled']
@@ -407,13 +420,51 @@ def show_loader():
                 st.write(processing_done_str)
         st.session_state.questions_rendered = True
 
-def generate_questions():
-    initialize_state(st.session_state['user_input'])
+def generate_questions(source='text'):
+    input = ''
+    if source == 'text':
+        input = st.session_state['user_input']
+    elif source == 'yt':
+        input = st.session_state['user_input_yt']
+
+    initialize_state(input)
     st.header('Questions:')
     renderQuestions()
 
 def render_questions_btn_clicked(btn_clicked=False):
     st.session_state['render_questions_btn_clicked'] = btn_clicked
+    
+def render_questions_btn_yt_clicked(btn_clicked=False):
+    st.session_state['render_questions_btn_yt_clicked'] = btn_clicked
+    
+# Youtube
+@st.cache_data
+def get_transcript(video_id, lang_code='en'):
+  try:
+    transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+    en_transcript = transcript_list.find_transcript([lang_code])
+    if not en_transcript:
+      print('[getYoutubeCaptions] No English transcript found, halting')
+      return None
+    transcript = en_transcript.fetch()
+    # print(f'''[getYoutubeCaptions] Got Youtube captions for the video {video_id}:
+    # {transcript}''')
+    print(f'''[getYoutubeCaptions] Got Youtube captions for the video {video_id}''')
+    return transcript
+  except Exception as e:
+    print(f'[getYoutubeCaptions] Error getting youtube captions: ', e)
+    return None
+
+def join_yt_transcripts(transcripts):
+    text_only = [piece['text'] for piece in transcripts]
+    return ' '.join(text_only)
+
+def get_youtube_video_id(youtube_url):
+  return youtube_url.split('v=')[1]
+
+def clear_state():
+    for key in st.session_state.keys():
+        del st.session_state[key]
     
 ### Render UI and combine all together
 st.title(PROJECT_NAME)
@@ -443,3 +494,29 @@ with tab_text:
 
 with tab_youtube:
     url = st.text_input('Youtube video URL')
+    
+    if url:
+        st.video(url)
+        
+        st.button(
+            'Generate questions', 
+            key='render_questions_btn_yt', 
+            on_click=render_questions_btn_yt_clicked, args=(True,)
+            )
+    
+        render_questions_btn_yt_was_clicked = 'render_questions_btn_yt_clicked' in st.session_state and st.session_state['render_questions_btn_yt_clicked']
+        
+        # This block is re-rendered on each checkbox marked
+        if render_questions_btn_yt_was_clicked:
+            initilized = 'initilized' in st.session_state and st.session_state['initilized']
+            if not initilized:
+                video_id = get_youtube_video_id(url)
+                print(f'\n\nvideo_id={video_id}')
+                transcript_obj = get_transcript(video_id)
+                transcript_text = join_yt_transcripts(transcript_obj)
+                text_first_part = transcript_text[0:MAX_INPUT_LEN_CHARS]
+            
+                print('setting user_input')
+                st.session_state['user_input_yt'] = text_first_part
+        
+            generate_questions('yt')
