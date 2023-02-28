@@ -298,7 +298,7 @@ def initialize_state(user_input):
     st.session_state['questionnaire_state'] = { 'questions_asked': [], 'questions_skipped': [], 'correct': [] }
     st.session_state['initilized'] = True
 
-def renderQuestions():
+def renderQuestions(source='text'):
     def disable_options(question_options_state_keys):
         for question_option in question_options_state_keys:
             question_options_state_keys[question_option]['disabled'] = True
@@ -347,7 +347,7 @@ def renderQuestions():
         correct_prcnt = answered_correctly / divide_by * 100
         st.markdown(f':grey[Asked: {questions_asked} | skipped: {questions_skipped} | correct: {answered_correctly} ({correct_prcnt}%)]')
     
-    def generate_q_options(q_idx, question_with_options, q_idx_started_1):
+    def generate_q_options(q_idx, question_with_options, q_idx_started_1, source='text'):
         options = {}
         q_idx_str = str(q_idx_started_1)
         
@@ -385,12 +385,20 @@ def renderQuestions():
                     response_status = 'correct'
                     st.write('👍 Correct!')
                     annotated_text(*highlight_proof(st.session_state['questions']['questions'][q_idx]['reference']))
+                    if source == 'yt':
+                        # st.video(st.session_state['youtube_video_url'])
+                        st.write('Please click "Play" in the video below to listen the relevant segment:')
+                        st.video('https://www.youtube.com/embed/L8U-pm-vZ4c?start=60&end=70&autoplay=1&hl=en&cc_lang_pref=en')
                 else:
                     response_status = 'wrong'
                     correct_option_idx = st.session_state['questions']['questions'][q_idx]['correct_option_index']
                     correct_option = st.session_state['questions']['questions'][q_idx]['options'][correct_option_idx]
                     st.markdown(f"😬 Unfortunately, no, the correct answer is *'{correct_option}'*")
                     annotated_text(*highlight_proof(st.session_state['questions']['questions'][q_idx]['reference']))
+                    if source == 'yt':
+                        # st.video(st.session_state['youtube_video_url'])
+                        st.write('Please click "Play" in the video below to listen the relevant segment:')
+                        st.video('https://www.youtube.com/embed/L8U-pm-vZ4c?start=60&end=70&autoplay=1&hl=en&cc_lang_pref=en')
                 update_score(q_idx+1, response_status)
                 show_stats()
 
@@ -400,7 +408,7 @@ def renderQuestions():
     
     for idx, _ in enumerate(st.session_state['questions']['questions']):
         render_question_title(idx)
-        generate_q_options(idx, st.session_state['questions']['questions'][idx], idx+1)
+        generate_q_options(idx, st.session_state['questions']['questions'][idx], idx+1, source)
 
 def show_loader():
     # render the following only if "Generate questions" button was clicked 
@@ -429,7 +437,7 @@ def generate_questions(source='text'):
 
     initialize_state(input)
     st.header('Questions:')
-    renderQuestions()
+    renderQuestions(source)
 
 def render_questions_btn_clicked(btn_clicked=False):
     st.session_state['render_questions_btn_clicked'] = btn_clicked
@@ -496,6 +504,7 @@ with tab_youtube:
     url = st.text_input('Youtube video URL')
     
     if url:
+        st.session_state['youtube_video_url'] = url
         st.video(url)
         
         st.button(
