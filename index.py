@@ -116,6 +116,7 @@ DUMMY_TEXT = 'Ukraine has been removed from the list of countries where the arti
 MAX_INPUT_LEN_CHARS = 1300
 SEPARATOR = '<highlight>'
 CORRECT_MARK = '^'
+OVERLAP_CHARS = 50 # how many characters before and after the segment should be taken
 
 ### Functions
 def get_openai_completion(prompt):
@@ -212,7 +213,6 @@ def openai_res_to_questions(openai_resp_questions):
 # May consider also using non-OpenAI approaches like
 # https://stackoverflow.com/questions/17740833/checking-fuzzy-approximate-substring-existing-in-a-longer-string-in-python
 def openai_res_to_references(openai_resp_proofs, input_text):
-    OVERLAP_CHARS = 50 # how many characters before and after the segment should be taken
     paragraphs = openai_resp_proofs.replace('\n\n', '').strip('\n').split('\n')
     proofs = []
     for paragraph in paragraphs:
@@ -346,6 +346,14 @@ def renderQuestions(source='text'):
         divide_by = questions_asked - questions_skipped or 1
         correct_prcnt = answered_correctly / divide_by * 100
         st.markdown(f':grey[Asked: {questions_asked} | skipped: {questions_skipped} | correct: {answered_correctly} ({correct_prcnt}%)]')
+
+    def show_video_proof(proof):
+        st.write('Please click "Play" in the video below to listen the relevant segment:')
+        start, end = get_proof_time(st.session_state['yt_captions_raw'], proof)
+        video_id = get_youtube_video_id(st.session_state['yt_url'])
+        yt_link = f'''https://www.youtube.com/embed/{video_id}?start={round(start)}&end={round(end)}&autoplay=1&hl=en&cc_lang_pref=en'''
+        print(f'[show_video_proof]: proof = "{proof}", yt_link={yt_link}')
+        st.video(yt_link)
     
     def generate_q_options(q_idx, question_with_options, q_idx_started_1, source='text'):
         options = {}
@@ -386,9 +394,10 @@ def renderQuestions(source='text'):
                     st.write('👍 Correct!')
                     annotated_text(*highlight_proof(st.session_state['questions']['questions'][q_idx]['reference']))
                     if source == 'yt':
-                        # st.video(st.session_state['youtube_video_url'])
-                        st.write('Please click "Play" in the video below to listen the relevant segment:')
-                        st.video('https://www.youtube.com/embed/L8U-pm-vZ4c?start=60&end=70&autoplay=1&hl=en&cc_lang_pref=en')
+                        show_video_proof(st.session_state['questions']['questions'][q_idx]['reference'])
+                        # st.write('Please click "Play" in the video below to listen the relevant segment:')
+                        # start, end = get_proof_time(st.session_state['yt_captions_raw'], st.session_state['questions']['questions'][q_idx]['reference'])
+                        # st.video(f'https://www.youtube.com/embed/L8U-pm-vZ4c?start={start}&end={end}&autoplay=1&hl=en&cc_lang_pref=en')
                 else:
                     response_status = 'wrong'
                     correct_option_idx = st.session_state['questions']['questions'][q_idx]['correct_option_index']
@@ -396,9 +405,10 @@ def renderQuestions(source='text'):
                     st.markdown(f"😬 Unfortunately, no, the correct answer is *'{correct_option}'*")
                     annotated_text(*highlight_proof(st.session_state['questions']['questions'][q_idx]['reference']))
                     if source == 'yt':
+                        show_video_proof(st.session_state['questions']['questions'][q_idx]['reference'])
                         # st.video(st.session_state['youtube_video_url'])
-                        st.write('Please click "Play" in the video below to listen the relevant segment:')
-                        st.video('https://www.youtube.com/embed/L8U-pm-vZ4c?start=60&end=70&autoplay=1&hl=en&cc_lang_pref=en')
+                        # st.write('Please click "Play" in the video below to listen the relevant segment:')
+                        # st.video('https://www.youtube.com/embed/L8U-pm-vZ4c?start=60&end=70&autoplay=1&hl=en&cc_lang_pref=en')
                 update_score(q_idx+1, response_status)
                 show_stats()
 
@@ -473,6 +483,57 @@ def get_youtube_video_id(youtube_url):
 def clear_state():
     for key in st.session_state.keys():
         del st.session_state[key]
+
+def get_time_for_proof_start_end(yt_captions, proof, search_start=True):
+  # 3 issues with YT proofs: 1) recalculated on each checkbox click, b) error on the last checkbox, c) start/stop are ignored by streamlit, need html container
+  highligh = proof.split('<highlight>')[1]
+  if not highligh:
+    return
+  hightlight_processed = highligh.lower()
+  highlight_parts = hightlight_processed.split(' ')
+  highligh_parts_in_segments_distribution = {}
+  for idx, _ in enumerate(highlight_parts):
+    searched_phrase = ''
+    all_segments_with_hightligh = []
+    if search_start:
+      if idx == 0:
+        searched_phrase = highlight_parts[0]
+      else:
+        searched_phrase = ' '.join(highlight_parts[0:idx])
+    else:
+      if idx == 0:
+        searched_phrase = highlight_parts[-1:][0]
+      else:
+        idx_from_end = -1 + idx * -1
+        searched_phrase = ' '.join(highlight_parts[idx_from_end:])
+    for segment in yt_captions:
+      if searched_phrase in segment['text']:
+        all_segments_with_hightligh.append(segment)
+    highligh_parts_in_segments_distribution[idx] = all_segments_with_hightligh
+    # we need a segment which contains the longest highlight part
+    # the longer the hightlight part, the less segments will coincide with it
+    # and then after adding the next word the hightligh will not be found in any segment
+    # so we need the step with 0 found after not-0, and take this not-0 value (expected to be only 1)
+    if len(highligh_parts_in_segments_distribution[idx]) == 0 and (idx - 1 >= 0) and len(highligh_parts_in_segments_distribution[idx-1]) > 0:
+      the_segment = highligh_parts_in_segments_distribution[idx-1][0]
+      if search_start:
+        return the_segment['start']
+      else:
+        segment_ends_at = the_segment['start'] + the_segment['duration']
+        return segment_ends_at
+  print('[get_time_for_proof_start_end] failed to find start/end for the proof "{proof}"')
+  return 0
+
+def get_proof_time(yt_captions, proof):
+  start = get_time_for_proof_start_end(yt_captions, proof)
+  end = get_time_for_proof_start_end(yt_captions, proof, False)
+  last_caption = yt_captions[-1:][0]
+  video_length = last_caption['start'] + last_caption['duration']
+  YT_SEGMENT_BORDERS_SEC = 3
+  start_with_borders = start - YT_SEGMENT_BORDERS_SEC if start - YT_SEGMENT_BORDERS_SEC >= 0 else 0
+  end_with_borders = end + YT_SEGMENT_BORDERS_SEC if end + YT_SEGMENT_BORDERS_SEC <= video_length else video_length
+  print(f'[get_proof_time] proof="{proof}", start={start_with_borders}, end={end_with_borders}')
+  return start_with_borders, end_with_borders
     
 ### Render UI and combine all together
 st.title(PROJECT_NAME)
@@ -527,5 +588,7 @@ with tab_youtube:
             
                 print('setting user_input')
                 st.session_state['user_input_yt'] = text_first_part
+                st.session_state['yt_captions_raw'] = transcript_obj
+                st.session_state['yt_url'] = url
         
             generate_questions('yt')

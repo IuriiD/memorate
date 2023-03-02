@@ -1,5 +1,4 @@
-// https://www.youtube.com/watch?v=L8U-pm-vZ4c
-[
+captions = [
   { "text": "today we're going to talk about", "start": 0.0, "duration": 4.68 },
   {
     "text": "abstractive or generative question and",
