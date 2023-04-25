@@ -10,9 +10,9 @@ Memorate is an application to generate multiple choice questions to a given text
 git clone git@github.com:IuriiD/memorate.git
 cd memorate
 
-# create the virtual environment and install the dependencies
-virtualenv -p python3 envname # or otherwise depending on how you do it
-pip install -r requirements.txt
+# create the virtual environment and install the dependencies (commands may differ depending on your setup)
+python3 -m venv env
+pip3 install -r requirements.txt
 
 # create keys.py (see keys_example.py) and provide your OPENAI_KEY, OPENAI_ORG
 
