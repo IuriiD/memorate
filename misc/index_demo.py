@@ -1,4 +1,4 @@
-# This repo has both OpenAI responses hardcoded, may be used for demo or in case OpenAI API is down
+# This file has both OpenAI responses hardcoded, may be used for demo or in case OpenAI API is down
 
 import openai
 import streamlit as st
