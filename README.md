@@ -4,6 +4,7 @@ Memorate is an application to generate multiple choice questions to a given text
 
 <img src="./misc/memorate-screenshot.png" width=50% height=50%>
 
+[Watch the video](https://www.youtube.com/embed/CbaoEHhp9tI)
 ## Running the app ##
 ```
 # clone the repo
@@ -26,7 +27,7 @@ The UI was created using [Streamlit](https://streamlit.io/), a popular open-sour
 When some option is chosen (besides the one that marks the question as irrelevant), the user receives feedback, including the correct answer and a reference to the source (phrase/paragraph in the text or the part of the YouTube video where this question is answered). Also, the app calculates the % of correct answers (excluding the questions marked by the user as irrelevant).
 
 ## Tech notes ##
-The app was written on Python (mainly to use Streamlit for quick UI). I'm a node.js developer, so I apologize for the possible straightforwardness of some implementations. OpenAI [completions endpoint](https://platform.openai.com/docs/guides/completion) was used, model text-davinci-003, temperature=0.1, max_tokens=400, otherwise default parameters. The logic was implemented using vanilla Python, without any frameworks like [Langchain](https://python.langchain.com/en/latest/index.html) etc. Most of the code is about parsing the model's outputs and making rendering the questionnaire in Streamlit (which as it appeared is not really intended for this specific purpose).
+The app was written on Python (mainly to use Streamlit for quick UI). I'm a node.js developer, so I apologize for the possible straightforwardness of some implementations. OpenAI [completions endpoint](https://platform.openai.com/docs/guides/completion) was used, model text-davinci-003, temperature=0.1, max_tokens=400, otherwise default parameters. The logic was implemented using vanilla Python, without any frameworks like [Langchain](https://python.langchain.com/en/latest/index.html) etc. Most of the code is about parsing the model's outputs and rendering the questionnaire in Streamlit (which as it appeared is not really intended for making questionnaires).
 
 The app makes 2 requests to the completions endpoint:
 - one to generate questions with response options and
