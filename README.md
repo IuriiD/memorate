@@ -2,6 +2,8 @@
 
 Memorate is an application to generate multiple choice questions to a given text or Youtube video, indented to help with the memorization of information. This is a pet project, which I created getting acquainted with the OpenAI API (and also streamlit.io).
 
+<img src="./misc/memorate-screenshot.png" width=50% height=50%>
+
 ## Running the app ##
 ```
 # clone the repo
@@ -11,6 +13,8 @@ cd memorate
 # create the virtual environment and install the dependencies
 virtualenv -p python3 envname # or otherwise depending on how you do it
 pip install -r requirements.txt
+
+# create keys.py (see keys_example.py) and provide your OPENAI_KEY, OPENAI_ORG
 
 # run the app, will start at http://localhost:8501/
 streamlit run index.py
