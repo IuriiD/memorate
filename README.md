@@ -13,6 +13,7 @@ cd memorate
 
 # create the virtual environment and install the dependencies (commands may differ depending on your setup)
 python3 -m venv env
+source env/bin/activate
 pip3 install -r requirements.txt
 
 # create keys.py (see keys_example.py) and provide your OPENAI_KEY, OPENAI_ORG
